@@ -1,18 +1,41 @@
 from tkinter import *
 from tkinter import filedialog as fd
+
 import numpy as np
+import tensorflow as tf
+from keras.activations import softmax
+from keras.applications.densenet import decode_predictions
 from keras.models import load_model
 from keras.preprocessing import image
 from PIL import Image, ImageTk
+from keras.models import Model
+from keras_preprocessing.image import ImageDataGenerator
 
 window = Tk()
 window.title("Test 2")
 window.geometry("800x600")
 window.configure(bg="#D0F4FF")
-classifier = load_model('./flowermodel10epoch224.h5')
+model = load_model('./flowermodel10epoch224.h5')
 photo = './assets/img/loadImg.png'
 window.photo = ImageTk.PhotoImage(Image.open(photo))
 isPick = FALSE
+train_datagen = ImageDataGenerator(rescale=1. / 255,
+                                   shear_range=0.2,
+                                   zoom_range=0.2,
+                                   horizontal_flip=True)
+
+test_datagen = ImageDataGenerator(rescale=1. / 255)
+
+training_set = train_datagen.flow_from_directory('dataset/train',
+                                                 target_size=(224, 224),
+                                                 batch_size=32,
+                                                 class_mode='categorical')
+
+test_set = test_datagen.flow_from_directory('dataset/val',
+                                            target_size=(224, 224),
+                                            batch_size=32,
+                                            class_mode='categorical')
+
 
 def change_pic():
     import_filename = fd.askopenfilename()
@@ -21,36 +44,32 @@ def change_pic():
     img = Image.open(import_filename)
     img.save("./assets/img/imgTest.jpg")
 
-imgLabel= Label(window,image=window.photo,bg="#D0F4FF")
+
+imgLabel = Label(window, image=window.photo, bg="#D0F4FF")
 imgLabel.config(width=600, height=400)
 imgLabel.pack()
 
-btnLoad = Button(window, text="Chọn ảnh", font=("Arial", 16), bg="#45BCFF", fg="white", padx="5px" , pady="5px", bd="0", command=change_pic)
+btnLoad = Button(window, text="Chọn ảnh", font=("Arial", 16), bg="#45BCFF", fg="white", padx="5px", pady="5px", bd="0",
+                 command=change_pic)
 btnLoad.place(relx=0.4, rely=0.9, anchor=CENTER)
 
 txt = Label(window, text="", fg="#45BCFF", font=("Arial", 24), bg="#D0F4FF")
 txt.place(relx=0.5, rely=0.8, anchor=CENTER)
 
+
 def checkImage():
     test_image = image.load_img('assets/img/imgTest.jpg', target_size=(224, 224))
     test_image = image.img_to_array(test_image)
     test_image = np.expand_dims(test_image, axis=0)
-    result = classifier.predict(test_image)
-    # print(np.argmax(result))
-    # print(result)
-    if result[0][0] == 1:
-        prediction = 'hoa cúc'
-    elif result[0][1] == 1:
-        prediction = 'hoa bồ công anh'
-    elif result[0][2] == 1:
-        prediction = 'hoa hồng'
-    elif result[0][3] == 1:
-        prediction = 'hoa hướng dương'
-    else:
-        prediction = 'hoa tulip'
-    txt.configure(text="Đây là " + prediction)
+    result = model.predict(test_image)
+    score = tf.nn.softmax(result[0])
+    class_names = ['hoa cúc', 'hoa bồ công anh', 'hoa hồng', 'hoa hướng dương', 'hoa tulip']
 
-btnCheck = Button(window, text="Kiểm tra ảnh", font=("Arial", 16), bg="#45BCFF", fg="white", padx="5px" , pady="5px", bd="0", command=checkImage)
+    txt.configure(text="Đây là {}".format(class_names[np.argmax(score)]))
+
+
+btnCheck = Button(window, text="Kiểm tra ảnh", font=("Arial", 16), bg="#45BCFF", fg="white", padx="5px", pady="5px",
+                  bd="0", command=checkImage)
 btnCheck.place(relx=0.6, rely=0.9, anchor=CENTER)
 
 window.mainloop()
