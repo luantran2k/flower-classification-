@@ -3,39 +3,17 @@ from tkinter import filedialog as fd
 
 import numpy as np
 import tensorflow as tf
-from keras.activations import softmax
-from keras.applications.densenet import decode_predictions
 from keras.models import load_model
 from keras.preprocessing import image
 from PIL import Image, ImageTk
-from keras.models import Model
-from keras_preprocessing.image import ImageDataGenerator
 
 window = Tk()
 window.title("Test 2")
 window.geometry("800x600")
 window.configure(bg="#D0F4FF")
-model = load_model('./flowermodel10epoch224.h5')
+model = load_model('./flowerModel224.h5')
 photo = './assets/img/loadImg.png'
 window.photo = ImageTk.PhotoImage(Image.open(photo))
-isPick = FALSE
-train_datagen = ImageDataGenerator(rescale=1. / 255,
-                                   shear_range=0.2,
-                                   zoom_range=0.2,
-                                   horizontal_flip=True)
-
-test_datagen = ImageDataGenerator(rescale=1. / 255)
-
-training_set = train_datagen.flow_from_directory('dataset/train',
-                                                 target_size=(224, 224),
-                                                 batch_size=32,
-                                                 class_mode='categorical')
-
-test_set = test_datagen.flow_from_directory('dataset/val',
-                                            target_size=(224, 224),
-                                            batch_size=32,
-                                            class_mode='categorical')
-
 
 def change_pic():
     import_filename = fd.askopenfilename()

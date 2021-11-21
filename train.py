@@ -1,4 +1,4 @@
-from keras.layers import Input, Lambda, Dense, Flatten
+from keras.layers import Dense, Flatten
 from keras.models import Model
 from keras.applications.vgg16 import VGG16
 from glob import glob
@@ -17,9 +17,8 @@ for layer in vgg.layers:
 # useful for getting number of classes
 folders = glob('dataset/train/*')
 
-# our layers - you can add more if you want
+# our layers
 x = Flatten()(vgg.output)
-
 prediction = Dense(len(folders), activation='softmax')(x)
 
 # create a model object
@@ -27,13 +26,8 @@ model = Model(inputs=vgg.input, outputs=prediction)
 
 # view the structure of the model
 model.summary()
-
 # tell the model what cost and optimization method to use
-model.compile(
-    loss='categorical_crossentropy',
-    optimizer='adam',
-    metrics=['accuracy']
-)
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 train_datagen = ImageDataGenerator(rescale=1. / 255,
                                    shear_range=0.2,
@@ -58,12 +52,12 @@ print(training_set.class_indices)
 history = model.fit(
     training_set,
     validation_data=test_set,
-    epochs=10,
+    epochs=30,
     steps_per_epoch=len(training_set),
     validation_steps=len(test_set)
 )
 
-model.save('flowerModel224.h5')
+model.save('flowermodel10epoch224.h5')
 
 acc = history.history['accuracy']
 val_acc = history.history['val_accuracy']
